@@ -496,16 +496,49 @@ function logAverageFrame(times) {   // times is the array of User Timing measure
 // The following code for sliding background pizzas was pulled from Ilya's demo found at:
 // https://www.igvita.com/slides/2012/devtools-tips-and-tricks/jank-demo.html
 
+function createPizzas() {
+  var cols = 8;
+  var s = 256;
+  var scrollTop = document.body.scrollTop;
+  
+  var movingPizzaEl = document.querySelector("#movingPizzas1");
+  while (movingPizzaEl.hasChildNodes()) {
+    movingPizzaEl.removeChild(movingPizzaEl.lastChild);
+  }
+  
+  var docFrag = document.createDocumentFragment();
+  for (var i = 0; i < 200; i++) {
+	var top = (Math.floor(i / cols) * s);
+	if (top > window.innerHeight) {
+		break;
+	}
+    var elem = document.createElement('img');
+    elem.className = 'mover';
+    elem.src = "images/pizza.png";
+    elem.style.height = "100px";
+    elem.style.width = "73.333px";
+    elem.basicLeft = (i % cols) * s;
+    elem.style.top = top + 'px';
+	var phase = Math.sin((scrollTop / 1250) + (i % 5));
+    elem.style.left = elem.basicLeft + 100 * phase + 'px';
+	docFrag.appendChild(elem);
+  }
+  
+  movingPizzaEl.appendChild(docFrag);	
+}
+
 // Moves the sliding background pizzas based on scroll position
 function updatePositions() {
   frame++;
   window.performance.mark("mark_start_frame");
+  
+  createPizzas();
 
-  var items = document.querySelectorAll('.mover');
+  /*var items = document.querySelectorAll('.mover');
   for (var i = 0; i < items.length; i++) {
     var phase = Math.sin((document.body.scrollTop / 1250) + (i % 5));
     items[i].style.left = items[i].basicLeft + 100 * phase + 'px';
-  }
+  }*/
 
   // User Timing API to the rescue again. Seriously, it's worth learning.
   // Super easy to create custom metrics.
@@ -522,21 +555,5 @@ window.addEventListener('scroll', updatePositions);
 
 // Generates the sliding pizzas when the page loads.
 document.addEventListener('DOMContentLoaded', function() {
-  var cols = 8;
-  var s = 256;
-  for (var i = 0; i < 200; i++) {
-	var top = (Math.floor(i / cols) * s);
-	if (top > window.innerHeight) {
-		break;
-	}
-    var elem = document.createElement('img');
-    elem.className = 'mover';
-    elem.src = "images/pizza.png";
-    elem.style.height = "100px";
-    elem.style.width = "73.333px";
-    elem.basicLeft = (i % cols) * s;
-    elem.style.top = top + 'px';
-    document.querySelector("#movingPizzas1").appendChild(elem);
-  }
-  updatePositions();
+  createPizzas();
 });
